@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import { SendVerificationEmail } from "../middlewares/Email.js";
+import { SendVerificationEmail } from "../middleware/Email.js";
 
 export const registerUser = async (req, res) => {
     try {

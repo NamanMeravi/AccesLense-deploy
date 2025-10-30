@@ -22,10 +22,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
- // Start server after DB connection
- await dbConnect();
- 
- // API routes
+
+// Start server after DB connection
+await dbConnect();
+
+
+
+// API routes
 app.use("/api/auth", authRoutes);
 app.use("/api/projects", projectRoutes);
 
@@ -35,6 +38,11 @@ app.get("/", (req, res) => {
     res.send("✅ Backend deployed successfully!");
 });
 
+app.listen(3000,()=>{
+    console.log("server is running on port 3000");
+    
+})
 
-export default (req, res) => app(req, res);
+export default app;
+
 
