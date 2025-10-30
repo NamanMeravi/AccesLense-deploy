@@ -36,7 +36,7 @@ app.use("/api/projects", projectRoutes);
 
 // Health check
 app.get("/", (req, res) => {
-  res.send("✅ Backend deployed successfully!");
+  res.send("✅ Backend redployed successfully!");
 });
 
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
