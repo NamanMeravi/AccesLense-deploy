@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-let isConnected = false; // track connection status
+let isConnected = false;
 
 const dbConnect = async () => {
   if (isConnected) {
@@ -11,16 +11,12 @@ const dbConnect = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       dbName: "AccessLense",
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      
     });
-
     isConnected = true;
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
-    throw error;
+    console.error("❌ MongoDB connection error:", error.message);
+    process.exit(1);
   }
 };
 
