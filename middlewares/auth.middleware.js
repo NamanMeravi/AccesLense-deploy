@@ -3,10 +3,11 @@ import User from "../models/user.model.js";
 
 export const isAuthenticated = async (req, res, next) => {
     try {
-        // Get token from cookies
-        const token = req.cookies.token;
+        // Get token from cookies or Authorization header
+        const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.replace('Bearer ', ''));
         
         if (!token) {
+            console.log("No token found. Cookies:", req.cookies);
             return res.status(401).json({ message: "Access denied. No token provided." });
         }
 

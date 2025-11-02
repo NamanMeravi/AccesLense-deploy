@@ -3,7 +3,8 @@ import { runAccessibilityCheck } from "../utils/pa11yCheck.js";
 //  Get all projects
 export const getAllProjects = async (req, res) => {
   try {
-    const projects = await Project.find().sort({ createdAt: -1 });
+    // Only get projects for the authenticated user
+    const projects = await Project.find({ user: req.user._id }).sort({ createdAt: -1 });
     res.json({ success: true, projects });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -13,9 +14,14 @@ export const getAllProjects = async (req, res) => {
 //  Get most recent project
 export const getRecentProject = async (req, res) => {
   try {
-    const project = await Project.findOne().sort({ createdAt: -1 }).limit(5);
-    if (!project) return res.status(404).json({ success: false, message: "No project found" });
-    res.json({ success: true, project });
+    // Only get recent projects for the authenticated user
+    const projects = await Project.find({ user: req.user._id })
+      .sort({ createdAt: -1 })
+      .limit(5);
+    if (!projects || projects.length === 0) {
+      return res.status(404).json({ success: false, message: "No project found" });
+    }
+    res.json({ success: true, projects });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -25,7 +31,9 @@ export const getRecentProject = async (req, res) => {
 export const searchProjects = async (req, res) => {
   try {
     const { query } = req.query; // /search?query=portfolio
+    // Only search projects for the authenticated user
     const projects = await Project.find({
+      user: req.user._id,
       $or: [
         { name: { $regex: query, $options: "i" } },
         { url: { $regex: query, $options: "i" } },
@@ -46,7 +54,13 @@ export const createProject = async (req, res) => {
       return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    const project = new Project({ name, url, description });
+    // Associate project with the authenticated user
+    const project = new Project({ 
+      name, 
+      url, 
+      description,
+      user: req.user._id 
+    });
     await project.save();
 
     res.status(201).json({ success: true, project });
@@ -59,14 +73,28 @@ export const createProject = async (req, res) => {
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedProject = await Project.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedProject) {
+    
+    // Find project and check if it belongs to the user
+    const project = await Project.findById(id);
+    
+    if (!project) {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
+
+    // Check if the project belongs to the authenticated user
+    if (project.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "You don't have permission to update this project" });
+    }
+
+    // Update the project
+    const updatedProject = await Project.findByIdAndUpdate(
+      id, 
+      req.body, 
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     res.json({ success: true, project: updatedProject });
   } catch (error) {
@@ -78,11 +106,20 @@ export const updateProject = async (req, res) => {
 export const deleteProject = async (req, res) => {
   try {
     const { id } = req.params;
-    const deletedProject = await Project.findByIdAndDelete(id);
+    
+    // Find project and check if it belongs to the user
+    const project = await Project.findById(id);
 
-    if (!deletedProject) {
+    if (!project) {
       return res.status(404).json({ success: false, message: "Project not found" });
     }
+
+    // Check if the project belongs to the authenticated user
+    if (project.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "You don't have permission to delete this project" });
+    }
+
+    const deletedProject = await Project.findByIdAndDelete(id);
 
     res.json({ success: true, message: "Project deleted successfully" });
   } catch (error) {
@@ -99,6 +136,11 @@ export const checkProjectAccessibility = async (req, res) => {
 
     if (!project) {
       return res.status(404).json({ success: false, message: "Project not found" });
+    }
+
+    // Check if the project belongs to the authenticated user
+    if (project.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ success: false, message: "You don't have permission to access this project" });
     }
 
     const results = await runAccessibilityCheck(project.url);
