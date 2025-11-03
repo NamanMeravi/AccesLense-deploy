@@ -7,7 +7,6 @@ import {
   createProject,
   updateProject,
   deleteProject,
-  checkProjectAccessibility,
 } from "../controllers/project.controller.js";
 
 const router = express.Router();
@@ -30,7 +29,6 @@ router.patch("/update/:id", isAuthenticated, updateProject);
 // DELETE project
 router.delete("/delete/:id", isAuthenticated, deleteProject);
 
-//check Accessibility
-router.get("/:id/accessibility", isAuthenticated, checkProjectAccessibility);
+
 
 export default router;

@@ -1,5 +1,4 @@
 import Project from "../models/project.model.js";
-import { runAccessibilityCheck } from "../utils/pa11yCheck.js";
 //  Get all projects
 export const getAllProjects = async (req, res) => {
   try {
@@ -128,37 +127,3 @@ export const deleteProject = async (req, res) => {
 };
 
 
-// Run accessibility test for a project by ID
-export const checkProjectAccessibility = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const project = await Project.findById(id);
-
-    if (!project) {
-      return res.status(404).json({ success: false, message: "Project not found" });
-    }
-
-    if (project.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "Unauthorized" });
-    }
-
-    // Run new accessibility audit
-    const results = await runAccessibilityCheck(project.url);
-
-    return res.status(200).json({
-      success: true,
-      project: {
-        _id: project._id,
-        name: project.name,
-        url: project.url,
-      },
-      results,
-    });
-  } catch (error) {
-    console.error("Accessibility check error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Accessibility check failed: " + error.message,
-    });
-  }
-};
