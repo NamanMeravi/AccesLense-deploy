@@ -12,14 +12,29 @@ export const runAccessibilityCheck = async (url) => {
 
     const html = await response.text();
 
-    // Create DOM using jsdom
-    const dom = new JSDOM(html);
+    // Create DOM using jsdom with proper options
+    const dom = new JSDOM(html, {
+      url: url,
+      pretendToBeVisual: true,
+      resources: "usable",
+    });
+
+    // Inject axe-core into the jsdom window
+    dom.window.axe = axe;
+    
+    // Ensure axe-core is properly configured for jsdom
+    const { window } = dom;
+    const { document } = window;
 
     // Run accessibility scan with axe-core
     const results = await new Promise((resolve, reject) => {
-      axe.run(dom.window.document, (err, results) => {
-        if (err) reject(err);
-        else resolve(results);
+      // Use window.axe.run instead of just axe.run
+      window.axe.run(document, (err, results) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
       });
     });
 
@@ -34,7 +49,7 @@ export const runAccessibilityCheck = async (url) => {
     }));
 
     return {
-      documentTitle: dom.window.document.title || "Untitled Page",
+      documentTitle: document.title || "Untitled Page",
       pageUrl: url,
       issues,
     };
