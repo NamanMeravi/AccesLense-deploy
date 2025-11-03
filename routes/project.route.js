@@ -7,6 +7,7 @@ import {
   createProject,
   updateProject,
   deleteProject,
+  getProjectById,
 } from "../controllers/project.controller.js";
 
 const router = express.Router();
@@ -20,11 +21,16 @@ router.get("/recent", isAuthenticated, getRecentProject);
 // GET projects by search (name, url, description)
 router.get("/search", isAuthenticated, searchProjects);
 
+
+// GET project by id
+router.get("/:id", isAuthenticated, getProjectById);
+
+
 // POST create project
 router.post("/create", isAuthenticated, createProject);
 
 // PATCH update project
-router.patch("/update/:id", isAuthenticated, updateProject);
+router.put("/update/:id", isAuthenticated, updateProject);
 
 // DELETE project
 router.delete("/delete/:id", isAuthenticated, deleteProject);

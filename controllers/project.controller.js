@@ -26,6 +26,17 @@ export const getRecentProject = async (req, res) => {
   }
 };
 
+export const getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.id);
+    if (!project)
+      return res.status(404).json({ success: false, message: "Project not found" });
+    res.json({ success: true, project });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 //  Search projects (by name, url, description)
 export const searchProjects = async (req, res) => {
   try {
@@ -69,37 +80,61 @@ export const createProject = async (req, res) => {
 };
 
 //  Update project
+ 
 export const updateProject = async (req, res) => {
   try {
     const { id } = req.params;
-    
-    // Find project and check if it belongs to the user
+     
+    const name = req.body.name?.trim();
+const description = req.body.description?.trim();
+const url = req.body.url?.trim();
+
+    // Validate input fields
+    if (!name || !description || !url) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide name, description, and URL",
+      });
+    }
+
+    // Find the project
     const project = await Project.findById(id);
-    
     if (!project) {
-      return res.status(404).json({ success: false, message: "Project not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
     }
 
-    // Check if the project belongs to the authenticated user
+    // Check ownership
     if (project.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "You don't have permission to update this project" });
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to update this project",
+      });
     }
 
-    // Update the project
-    const updatedProject = await Project.findByIdAndUpdate(
-      id, 
-      req.body, 
-      {
-        new: true,
-        runValidators: true,
-      }
-    );
+    // Update the project safely (only allowed fields)
+    project.name = name;
+    project.description = description;
+    project.url = url;
 
-    res.json({ success: true, project: updatedProject });
+    const updatedProject = await project.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Project updated successfully",
+      project: updatedProject,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Error updating project:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
   }
 };
+
 
 //  Delete project
 export const deleteProject = async (req, res) => {
