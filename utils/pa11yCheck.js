@@ -4,7 +4,7 @@ import fs from "fs";
 export const runAccessibilityCheck = async (url) => {
   try {
     // Get browser configuration
-    const browserConfig = await getBrowserConfig();
+    const browserConfig = getBrowserConfig();
     
     // Configure Pa11y with Puppeteer browser options
     // Pa11y 9.x uses 'browser' option with Puppeteer launch options
@@ -12,28 +12,9 @@ export const runAccessibilityCheck = async (url) => {
       timeout: 60000, // 60 seconds timeout
       wait: 1000, // Wait 1 second for page load
       ignore: [], // Don't ignore any issues
+      // Pass launch options directly to browser property
+      browser: browserConfig,
     };
-
-    // Configure browser with proper settings for server environments
-    pa11yOptions.browser = {
-      args: browserConfig.args,
-    };
-
-    // Set executable path if found
-    if (browserConfig.executablePath) {
-      pa11yOptions.browser.executablePath = browserConfig.executablePath;
-    } else {
-      // Try to use Puppeteer's bundled Chrome if available
-      try {
-        const puppeteer = await import('puppeteer');
-        const executablePath = await puppeteer.executablePath();
-        if (executablePath && fs.existsSync(executablePath)) {
-          pa11yOptions.browser.executablePath = executablePath;
-        }
-      } catch (puppeteerError) {
-        console.warn('Could not get Puppeteer executable path, using default');
-      }
-    }
 
     const results = await pa11y(url, pa11yOptions);
 
@@ -51,7 +32,7 @@ export const runAccessibilityCheck = async (url) => {
 };
 
 // Helper function to get browser configuration
-const getBrowserConfig = async () => {
+const getBrowserConfig = () => {
   // Browser arguments for server environments (Render, Docker, etc.)
   const browserArgs = [
     '--no-sandbox',
@@ -64,6 +45,11 @@ const getBrowserConfig = async () => {
     '--disable-web-security',
     '--disable-features=IsolateOrigins,site-per-process',
   ];
+
+  const launchOptions = {
+    args: browserArgs,
+    headless: true,
+  };
 
   // Check for Chrome in common locations (useful for production environments)
   const possiblePaths = [
@@ -91,8 +77,13 @@ const getBrowserConfig = async () => {
     }
   }
 
-  return {
-    args: browserArgs,
-    executablePath: executablePath,
-  };
+  // If no system Chrome found, let Puppeteer use its bundled Chrome
+  // Puppeteer will automatically find its bundled Chrome if executablePath is not specified
+
+  // Set executable path if found
+  if (executablePath) {
+    launchOptions.executablePath = executablePath;
+  }
+
+  return launchOptions;
 };
