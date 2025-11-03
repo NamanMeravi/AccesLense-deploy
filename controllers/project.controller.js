@@ -135,18 +135,37 @@ export const checkProjectAccessibility = async (req, res) => {
     const project = await Project.findById(id);
 
     if (!project) {
-      return res.status(404).json({ success: false, message: "Project not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Project not found",
+      });
     }
 
-    // Check if the project belongs to the authenticated user
+    // Ensure only the project owner can access it
     if (project.user.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: "You don't have permission to access this project" });
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to access this project",
+      });
     }
 
+    // Run accessibility scan via pa11y
     const results = await runAccessibilityCheck(project.url);
 
-    res.json({ success: true, results });
+    return res.status(200).json({
+      success: true,
+      project: {
+        _id: project._id,
+        name: project.name,
+        url: project.url,
+      },
+      results,
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    console.error("Accessibility check error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Accessibility check failed: " + error.message,
+    });
   }
 };
