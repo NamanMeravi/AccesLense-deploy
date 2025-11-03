@@ -1,19 +1,20 @@
 import pa11y from "pa11y";
+import puppeteer from "puppeteer";
 import fs from "fs";
 
 export const runAccessibilityCheck = async (url) => {
   try {
-    // Get browser configuration
-    const browserConfig = getBrowserConfig();
+    // Get browser launch configuration
+    const launchOptions = getBrowserConfig();
     
-    // Configure Pa11y with Puppeteer browser options
-    // Pa11y 9.x uses 'browser' option with Puppeteer launch options
+    // Configure Pa11y with Puppeteer
+    // Pa11y 9.x requires: browser = Puppeteer module, launch = launch options
     const pa11yOptions = {
       timeout: 60000, // 60 seconds timeout
       wait: 1000, // Wait 1 second for page load
       ignore: [], // Don't ignore any issues
-      // Pass launch options directly to browser property
-      browser: browserConfig,
+      browser: puppeteer, // Pass Puppeteer module
+      launch: launchOptions, // Pass launch options separately
     };
 
     const results = await pa11y(url, pa11yOptions);
