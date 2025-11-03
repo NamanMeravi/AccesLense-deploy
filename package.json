@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "vercel-start":"node server.js"
+    "vercel-start":"node server.js",
+    "postinstall": "npx puppeteer browsers install chrome || true"
   },
   "keywords": [],
   "author": "",
@@ -21,7 +22,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.19.2",
     "nodemailer": "^7.0.10",
-    "pa11y": "^9.0.1"
+    "pa11y": "^9.0.1",
+    "puppeteer": "^23.0.0"
      
   },
   "devDependencies": {
