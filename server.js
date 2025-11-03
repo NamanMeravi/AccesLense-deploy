@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(
   cors({
-    origin: true, // reflect request origin
+    origin: ["http://localhost:5173", "https://your-frontend-domain.com"],
     credentials: true,
   })
 );
