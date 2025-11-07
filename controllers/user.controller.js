@@ -1,6 +1,6 @@
 import User from "../models/user.model.js";
 import { SendVerificationEmail } from "../middlewares/Email.js";
-
+import cloudinary from "../config/cloudinary.js"; 
 export const registerUser = async (req, res) => {
     try {
         const { name, email, password } = req.body;
@@ -21,7 +21,9 @@ export const registerUser = async (req, res) => {
             email, 
             password, 
             verificationcode: verificationCode, 
-            verificationcodeExpiry: verificationCodeExpiry 
+            verificationcodeExpiry: verificationCodeExpiry, 
+             profilePic: "/Userimage.png"
+
         });
 
         const token = user.generateToken();
@@ -213,6 +215,7 @@ export const GetUser = async (req, res) => {
                 name: req.user.name,
                 email: req.user.email,
                 isVerified: req.user.isVerified,
+                profilePic:req.user.profilePic,
                 createdAt: req.user.createdAt,
                 updatedAt: req.user.updatedAt
             }
@@ -222,6 +225,40 @@ export const GetUser = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+
+export const uploadProfilePic = async (req, res) => {
+    try {
+      const userId = req.user._id;
+      const { image } = req.body; // Base64 image from frontend
+  
+      if (!image) {
+        return res.status(400).json({ success: false, message: "No image provided" });
+      }
+  
+      // Upload to Cloudinary
+      const uploadResponse = await cloudinary.uploader.upload(image, {
+        folder: "profile_pics",
+        transformation: [{ width: 500, height: 500, crop: "fill" }],
+      });
+  
+      // Update user's profile picture in MongoDB
+      const updatedUser = await User.findByIdAndUpdate(
+        userId,
+        { profilePic: uploadResponse.secure_url },
+        { new: true }
+      );
+  
+      return res.status(200).json({
+        success: true,
+        message: "Profile picture updated successfully",
+        profilePic: updatedUser.profilePic,
+      });
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      res.status(500).json({ success: false, message: "Error uploading profile picture" });
+    }
+  };
 
 
 export const Logout = async(req,res)=>{

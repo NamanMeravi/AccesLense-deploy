@@ -26,6 +26,7 @@ const  UserSchema= new mongoose.Schema({
     verificationcodeExpiry: {
         type: Date,
     },
+    profilePic: { type: String, default: 'https://upload.wikimedia.org/wikipedia/commons/e/e0/Userimage.png' }
    
    
 }, { timestamps: true });

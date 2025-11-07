@@ -25,8 +25,10 @@ app.use(cookieParser());
 
 
 // Start server after DB connection
+
 await dbConnect();
 
+app.use(express.static('public'));
 
 
 // API routes

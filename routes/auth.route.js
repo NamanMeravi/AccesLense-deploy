@@ -1,5 +1,5 @@
 import express from "express";
-import { registerUser, Login, VerifyEmail, GetUser, Logout, ResendVerificationEmail } from "../controllers/user.controller.js";
+import { registerUser, Login, VerifyEmail, GetUser, Logout, ResendVerificationEmail, uploadProfilePic } from "../controllers/user.controller.js";
 import { isAuthenticated } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
@@ -15,5 +15,7 @@ router.post("/verifyEmail", isAuthenticated, VerifyEmail);
 router.post("/resendVerification", isAuthenticated, ResendVerificationEmail);
 
 router.get("/getUser", isAuthenticated, GetUser);
+
+router.post("/uploadProfilePic",isAuthenticated,uploadProfilePic);
 
 export default router
