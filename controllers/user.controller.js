@@ -227,6 +227,7 @@ export const GetUser = async (req, res) => {
 }
 
 
+
 export const uploadProfilePic = async (req, res) => {
     try {
       const userId = req.user._id;
@@ -236,27 +237,43 @@ export const uploadProfilePic = async (req, res) => {
         return res.status(400).json({ success: false, message: "No image provided" });
       }
   
-      // Upload to Cloudinary
+      // ⚠️ Prevent huge payloads (optional but safe)
+      if (image.length > 10_000_000) {
+        return res.status(400).json({
+          success: false,
+          message: "Image too large. Please upload a smaller one (max 10MB).",
+        });
+      }
+  
+      // ✅ Upload to Cloudinary
       const uploadResponse = await cloudinary.uploader.upload(image, {
         folder: "profile_pics",
         transformation: [{ width: 500, height: 500, crop: "fill" }],
       });
   
-      // Update user's profile picture in MongoDB
+      // ✅ Update user's profile picture in MongoDB
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         { profilePic: uploadResponse.secure_url },
         { new: true }
       );
   
+      if (!updatedUser) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+  
+      // ✅ Send success response
       return res.status(200).json({
         success: true,
         message: "Profile picture updated successfully",
         profilePic: updatedUser.profilePic,
       });
     } catch (error) {
-      console.error("Error uploading profile picture:", error);
-      res.status(500).json({ success: false, message: "Error uploading profile picture" });
+      console.error("❌ Error uploading profile picture:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error uploading profile picture",
+      });
     }
   };
 
