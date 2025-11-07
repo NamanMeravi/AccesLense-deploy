@@ -16,6 +16,6 @@ router.post("/resendVerification", isAuthenticated, ResendVerificationEmail);
 
 router.get("/getUser", isAuthenticated, GetUser);
 
-router.post("/uploadProfilePic",isAuthenticated,uploadProfilePic);
+router.post("/upload-profile-pic", isAuthenticated, uploadProfilePic);
 
 export default router

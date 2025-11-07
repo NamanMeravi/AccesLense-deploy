@@ -9,6 +9,7 @@ import {
   deleteProject,
   getProjectById,
 } from "../controllers/project.controller.js";
+ 
 
 const router = express.Router();
 
@@ -34,6 +35,7 @@ router.put("/update/:id", isAuthenticated, updateProject);
 
 // DELETE project
 router.delete("/delete/:id", isAuthenticated, deleteProject);
+ 
 
 
 
